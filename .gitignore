@@ -1,0 +1,39 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+
+# Local env / secrets
+.env
+.env.*
+!.env.example
+
+# Local workspace inventory (absolute personal paths)
+workspaces.yaml
+
+# Dependencies / caches
+node_modules/
+.npm/
+**/node_modules/
+
+# mcp-rag build + runtime (rebuild with: cd mcp-rag && npm run build)
+mcp-rag/dist/
+mcp-rag/logs/
+*.log
+
+# Qdrant / Ollama local data (never commit)
+**/qdrant_storage/
+**/qdrant/storage/
+ollama_data/
+
+# Personal / machine exports
+usage-events-*.csv
+*.csv
+!docs/**/*.csv
+
+# Optional local overrides
+.vscode/settings.local.json
+*.local.yaml
+*.local.yml

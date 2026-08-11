@@ -1,0 +1,22 @@
+# Copy to workspaces.yaml and edit paths for your machine:
+#   cp workspaces.example.yaml workspaces.yaml
+# workspaces.yaml is gitignored (local absolute paths).
+
+workspaces:
+  - id: example-product
+    path: /absolute/path/to/your-product-repo
+    role: product   # product | library | ops
+    tags: [example]
+    notes: Placeholder product — replace with your repos.
+
+  - id: example-library
+    path: /absolute/path/to/your-library
+    role: library
+    tags: [example]
+    notes: Optional library workspace.
+
+  - id: ops-meta
+    path: /absolute/path/to/ops-agent
+    role: ops
+    tags: [ops, meta]
+    notes: This ops-agent core repo.

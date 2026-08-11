@@ -1,0 +1,33 @@
+{
+  "name": "ops-mcp-rag",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP stdio server: project knowledge RAG over Ollama embeddings + Qdrant",
+  "type": "module",
+  "bin": {
+    "ops-mcp-rag": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "smoke": "tsx scripts/smoke.ts",
+    "status": "tsx scripts/status.ts",
+    "sync-docs": "tsx scripts/sync-docs.ts",
+    "search": "tsx scripts/search.ts",
+    "logs": "mkdir -p logs && touch logs/mcp.log && tail -n 80 -f logs/mcp.log",
+    "start:logged": "bash scripts/run-with-log.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}
