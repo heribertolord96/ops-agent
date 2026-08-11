@@ -95,6 +95,13 @@ El ahorro de tokens solo cuenta si el agente usa `search_knowledge_base` en luga
 
 Compatible en principio con otros clientes agentic que hablen **MCP stdio** (Cursor; Claude Code / Codex-style si soportan MCP). Cablea el servidor vía la **config MCP de cada cliente**.
 
+### Cursor (local)
+
+1. Build: `cd mcp-rag && npm install && npm run build`
+2. Config **global** del usuario (no va en el repo): `~/.cursor/mcp.json` — servidor `ops-rag` apuntando a `mcp-rag/dist/index.js` (snippet en [`mcp-rag/README.md`](mcp-rag/README.md)).
+3. Reinicia MCP / Cursor y verifica **Settings → MCP** (servidor en verde).
+4. Regla del repo: [`.cursor/rules/prefer-indexed-knowledge.mdc`](.cursor/rules/prefer-indexed-knowledge.mdc) — busca con `search_knowledge_base` antes de leer docs a mansalva. Pasa `project_id` según el producto (`ops-agent`, `autobot`, `whats-api`, `omnicast`, …).
+
 ## Fase 2 (fuera de este scaffold)
 
 - Skills de producto / launch / freelance scan (con OK humano)

@@ -1,0 +1,33 @@
+---
+description: Prefer MCP search_knowledge_base before bulk-reading project docs
+alwaysApply: true
+---
+
+# Prefer indexed knowledge search
+
+For questions about **process, architecture, decisions, product docs, or project knowledge**:
+
+1. Call MCP tool `search_knowledge_base` **first** (server `ops-rag`) with an appropriate `project_id`.
+2. Optionally `Read` only the `source_path` hits — do **not** bulk-read many `.md` files “just in case”.
+3. If MCP is unreachable or returns the fallback warning → then fall back to local file reading.
+
+## `project_id` examples
+
+| Context | `project_id` |
+|---------|----------------|
+| This ops-agent repo | `ops-agent` |
+| Autobot | `autobot` |
+| Whats API | `whats-api` |
+| OmniCast | `omnicast` |
+
+Use the id that matches the product/workspace under discussion. Override via tool arg when the chat is about another product than `DEFAULT_PROJECT_ID`.
+
+## Code work
+
+Implementing or editing **code**: normal Grep/Read of source is fine. Still use `search_knowledge_base` for doc/decision context when relevant.
+
+## Anti-patterns
+
+- ❌ Opening dozens of Markdown files across the tree before searching
+- ❌ Ignoring RAG hits and re-reading the whole docs folder
+- ❌ Skipping search when the question is clearly about documented process/knowledge
