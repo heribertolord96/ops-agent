@@ -78,7 +78,15 @@ MCP por **stdio no es un demonio**: el cliente arranca `node dist/index.js` cuan
 | `npm run smoke` | End-to-end: health → sync fixture → search |
 | `npm run sync-docs -- …` | Indexar Markdown de un directorio |
 | `npm run search -- …` | Probar `search_knowledge_base` desde la CLI |
-| Cursor → **Settings → MCP** | Servidor `ops-rag` healthy cuando está cargado |
+| Cursor → **Settings → MCP** / **Customize → MCPs** | Servidor `ops-rag` healthy cuando está cargado |
+
+### UI esperada en Cursor
+
+Verifica en **Customize → MCPs** (o Settings → MCP): `ops-rag` en verde con **2 tools enabled** (`search_knowledge_base` + `sync_project_docs`). Otros servidores (p. ej. GitKraken Disabled) son opcionales y no afectan a ops-rag.
+
+![ops-rag en Cursor: estado verde, 2 tools enabled](../docs/ops/images/cursor-mcp-ops-rag.png)
+
+*UI esperada: `ops-rag` en verde con 2 tools enabled.*
 
 ### Logs locales opcionales (debug)
 
