@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ops-rag · métricas</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="page-header">
+        <h1>ops-rag · métricas</h1>
+        <p class="lede">
+          Uso de tools MCP (<code>search_knowledge_base</code> /
+          <code>sync_project_docs</code>). Esto mide llamadas y tamaño de payload,
+          <strong>no</strong> tokens del plan de Cursor.
+        </p>
+      </header>
+
+      <div id="file-protocol-banner" class="banner" hidden>
+        Estás abriendo esta página como <code>file://</code>. El navegador
+        bloqueará <code>fetch</code>. Desde <code>mcp-rag/</code> ejecuta
+        <code>npm run dashboard</code> y abre
+        <a href="http://127.0.0.1:3000/">http://127.0.0.1:3000/</a>.
+      </div>
+
+      <aside id="capture" class="capture" aria-labelledby="capture-title">
+        <h2 id="capture-title">Captura de datos</h2>
+        <dl class="capture-meta">
+          <div>
+            <dt>Archivo JSONL</dt>
+            <dd><code id="capture-path">mcp-rag/logs/mcp-usage.jsonl</code></dd>
+          </div>
+          <div>
+            <dt>Último evento (real)</dt>
+            <dd id="capture-last">—</dd>
+          </div>
+          <div>
+            <dt>Eventos (real)</dt>
+            <dd id="capture-count">—</dd>
+          </div>
+        </dl>
+        <p class="howto">
+          Para capturar datos reales hay que <strong>recargar</strong> el servidor
+          MCP <code>ops-rag</code> (Customize → MCPs → refresh). Cada llamada a
+          <code>search_knowledge_base</code> o <code>sync_project_docs</code>
+          escribe una línea en ese archivo. El poll del dashboard no genera
+          eventos; solo los lee.
+        </p>
+        <div class="toolbar">
+          <button type="button" id="refresh-now">Actualizar ahora</button>
+          <button type="button" id="toggle-source" class="secondary">Ver fixture</button>
+          <span id="live-status" class="status"></span>
+        </div>
+      </aside>
+
+      <section id="live" aria-labelledby="live-title" data-source="empty">
+        <div class="section-head">
+          <h2 id="live-title">Uso capturado</h2>
+          <span id="live-badge" class="badge badge-empty">SIN DATOS REALES</span>
+        </div>
+        <p class="caption">
+          Fuente: <code>logs/mcp-usage.jsonl</code>. Poll ~8 s. Nunca se mezclan
+          fixture y log real sin etiqueta.
+        </p>
+        <div id="live-empty" class="empty" hidden></div>
+        <div id="live-body" hidden>
+          <div class="kpis" id="live-kpis"></div>
+          <div class="charts">
+            <figure class="chart wide">
+              <figcaption id="chart-time-title">Llamadas en el tiempo</figcaption>
+              <canvas id="chart-time" aria-label="Llamadas en el tiempo"></canvas>
+            </figure>
+            <figure class="chart">
+              <figcaption>Por tool</figcaption>
+              <canvas id="chart-tool" aria-label="Llamadas por tool"></canvas>
+            </figure>
+            <figure class="chart">
+              <figcaption>Por project_id</figcaption>
+              <canvas id="chart-project" aria-label="Llamadas por project_id"></canvas>
+            </figure>
+          </div>
+          <h3 class="table-title">Últimos eventos</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Hora (UTC)</th>
+                  <th>Tool</th>
+                  <th>Proyecto</th>
+                  <th>Query / destino</th>
+                  <th>Chars</th>
+                  <th>ms</th>
+                  <th>Error</th>
+                </tr>
+              </thead>
+              <tbody id="live-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="benchmark" aria-labelledby="bench-title">
+        <div class="section-head">
+          <h2 id="bench-title">EXPECTATIVA / laboratorio</h2>
+          <span class="badge badge-expect">no es en vivo</span>
+        </div>
+        <p id="bench-caption" class="caption"></p>
+        <div class="charts">
+          <figure class="chart wide">
+            <figcaption>Tokens de contexto aprox. (laboratorio)</figcaption>
+            <canvas id="chart-bench" aria-label="Barras WITH vs WITHOUT"></canvas>
+          </figure>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Escenario</th>
+                <th>Sin RAG</th>
+                <th>Con RAG</th>
+                <th>Ahorro aprox.</th>
+              </tr>
+            </thead>
+            <tbody id="bench-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="snapshots" aria-labelledby="snap-title">
+        <div class="section-head">
+          <h2 id="snap-title">Histórico agregado</h2>
+          <span class="badge badge-hist">cron, no en vivo</span>
+        </div>
+        <p class="caption">
+          Agregados escritos por <code>npm run snapshot-usage</code> (cron
+          opcional). No es el log en vivo ni el fixture.
+        </p>
+        <div id="snap-empty" class="empty" hidden></div>
+        <div id="snap-body" hidden>
+          <div class="charts">
+            <figure class="chart wide">
+              <figcaption>Llamadas acumuladas por snapshot</figcaption>
+              <canvas id="chart-snap" aria-label="Historial de snapshots"></canvas>
+            </figure>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Snapshot</th>
+                  <th>Llamadas</th>
+                  <th>Searches</th>
+                  <th>Syncs</th>
+                  <th>Errores</th>
+                  <th>Chars</th>
+                </tr>
+              </thead>
+              <tbody id="snap-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        Dashboard estático local. Sin secretos en el código. Los logs reales
+        están en <code>mcp-rag/logs/</code> (gitignored).
+      </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

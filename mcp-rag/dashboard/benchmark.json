@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "updated": "2026-08-25",
+  "unit": "approx_context_tokens",
+  "caption": "Instantáneas de laboratorio (contexto WITH vs WITHOUT search_knowledge_base). NO son tokens del plan de Cursor.",
+  "scenarios": [
+    {
+      "id": "triage",
+      "label": "Triage (ops)",
+      "without": 1910,
+      "with": 502,
+      "savings_pct": 74
+    },
+    {
+      "id": "legal",
+      "label": "Legal",
+      "without": 1134,
+      "with": 571,
+      "savings_pct": 50
+    },
+    {
+      "id": "dense",
+      "label": "Knowledge denso (ej. API messaging)",
+      "without": 5035,
+      "with": 1058,
+      "savings_pct": 79
+    },
+    {
+      "id": "product",
+      "label": "Docs de producto (ej. bots + ollama)",
+      "without": 2232,
+      "with": 330,
+      "savings_pct": 85
+    }
+  ]
+}

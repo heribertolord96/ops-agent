@@ -70,12 +70,14 @@ npm run build
 
 ## Estado, smoke y logs (sin daemon)
 
-MCP por **stdio no es un demonio**: el cliente arranca `node dist/index.js` cuando hace falta. Por defecto **no hay logs de servidor** en un archivo.
+MCP por **stdio no es un demonio**: el cliente arranca `node dist/index.js` (o el wrapper) cuando hace falta.
+
+Cada llamada MCP a `search_knowledge_base` / `sync_project_docs` (éxito, error o fallback) escribe **una línea JSON** en `logs/mcp-usage.jsonl` y el mismo JSON en **stderr**. Eso mide **uso de tools**, no tokens del plan de Cursor.
 
 | Comando | Para qué |
 |---------|----------|
 | `npm run status` | Backends (Ollama + modelo, Qdrant + puntos en `ops_knowledge`), Node, `dist/index.js` |
-| `npm run smoke` | End-to-end: health → sync fixture → search |
+| `npm run smoke` | End-to-end: health → sync fixture → search (CLI; **no** escribe usage JSONL) |
 | `npm run sync-docs -- …` | Indexar Markdown de un directorio |
 | `npm run search -- …` | Probar `search_knowledge_base` desde la CLI |
 | Cursor → **Settings → MCP** / **Customize → MCPs** | Servidor `ops-rag` healthy cuando está cargado |
@@ -88,17 +90,95 @@ Verifica en **Customize → MCPs** (o Settings → MCP): `ops-rag` en verde con 
 
 *UI esperada: `ops-rag` en verde con 2 tools enabled.*
 
-### Logs locales opcionales (debug)
+### Uso de tools (JSONL) — no es ahorro del plan de Cursor
+
+El gráfico de usage de Cursor **no** refleja el ahorro de RAG. Este log local sí cuenta cada tool call.
+
+Archivo (gitignored, junto a `logs/mcp.log`): `mcp-rag/logs/mcp-usage.jsonl`
+
+Ejemplo de línea (`search_knowledge_base`):
+
+```json
+{"ts":"2026-08-25T15:21:00.123Z","tool":"search_knowledge_base","project_id":"ops-agent","query":"ops triage weekly jobs","hit_count":5,"chars":1840,"is_error":false,"ms":312}
+```
+
+Ejemplo (`sync_project_docs`):
+
+```json
+{"ts":"2026-08-25T15:22:10.456Z","tool":"sync_project_docs","project_id":"ops-agent","target_dir":"/absolute/path/to/ops-agent","files":12,"chunks":48,"chars":620,"is_error":false,"ms":4120}
+```
+
+`query` se trunca a 120 caracteres. No se registran cuerpos de archivos, `.env` ni credenciales.
+
+Contar y agrupar:
+
+```bash
+cd mcp-rag
+
+# llamadas totales
+wc -l logs/mcp-usage.jsonl
+
+# por tool
+jq -r .tool logs/mcp-usage.jsonl | sort | uniq -c
+
+# errores / fallbacks
+jq 'select(.is_error == true)' logs/mcp-usage.jsonl
+
+# searches por project_id
+jq -s 'map(select(.tool=="search_knowledge_base")) | group_by(.project_id) | map({project_id: .[0].project_id, n: length})' logs/mcp-usage.jsonl
+
+# chars devueltos (aprox. del payload MCP, no tokens de Cursor)
+jq -s 'map(.chars) | add' logs/mcp-usage.jsonl
+```
+
+**Esto no es ahorro de tokens del plan de Cursor.** Solo indica cuántas veces se usó ops-rag y el tamaño del payload. El ahorro de contexto ocurre si el agente **usa** la búsqueda en lugar de leer todos los `.md`.
+
+### Dashboard de métricas (local)
+
+UI estática (`dashboard/index.html` + JS, Chart.js por CDN). **No abras el HTML como `file://`**: el navegador bloqueará `fetch`.
+
+Servidor Node propio (no `npx serve`; `/` es la app, no un listado de archivos):
+
+```bash
+cd mcp-rag
+npm run dashboard
+```
+
+Abre [http://127.0.0.1:3000/](http://127.0.0.1:3000/). Escucha `127.0.0.1:3000` (o `PORT` / `HOST` en el entorno). `/dashboard` redirige a `/`. Assets (`/styles.css`, `/app.js`, fixtures, `benchmark.json`) y logs (`/logs/mcp-usage.jsonl`, `/logs/snapshots/*`) salen del mismo origen. No hay directory listing del repo.
+
+| Panel | Qué es |
+|-------|--------|
+| **Uso capturado** | `logs/mcp-usage.jsonl` (etiqueta **DATOS REALES**). Si el archivo no existe, el vacío lo dice: no es un mock. **Ver fixture** carga demo opcional (etiqueta **DEMO / FIXTURE**). |
+| **EXPECTATIVA / laboratorio** | `dashboard/benchmark.json` (WITH vs WITHOUT). No es uso en vivo ni tokens del plan. |
+| **Histórico agregado** | `logs/snapshots/index.json` escrito por cron/`npm run snapshot-usage`. No es el log en vivo. |
+
+![Dashboard local en modo DEMO / FIXTURE](dashboard/fixture-preview.png)
+
+*Esto es **DEMO / FIXTURE**, no el JSONL en vivo ni tokens del plan de Cursor.*
+
+```bash
+npm run snapshot-usage
+```
+
+Cron opcional (20:00, una vez al día):
+
+```
+0 20 * * * cd /absolute/path/to/ops-agent/mcp-rag && npm run snapshot-usage
+```
+
+Si el mismo día se corre otra vez, el archivo diario `YYYY-MM-DD.json` no se pisa: se escribe un `YYYY-MM-DDTHHMMSS.json`. `logs/` (incluye `snapshots/`) sigue gitignored.
+
+### Logs stderr opcionales (`mcp.log`)
+
+El servidor ya escribe usage en `mcp-usage.jsonl` aunque `mcp.json` apunte directo a `node dist/index.js`. El wrapper **además** duplica **stderr** (JSON de usage + fatales) a `logs/mcp.log`. `stdout` queda limpio para MCP.
 
 ```bash
 npm run start:logged
-# o en mcp.json: "command" = ruta a scripts/run-with-log.sh (sin args)
+# o en mcp.json: command = ruta a scripts/run-with-log.sh (ver abajo)
 
 npm run logs
 # o: tail -f logs/mcp.log
 ```
-
-`stdout` limpio para MCP; solo se duplica **stderr** al log.
 
 ## Indexar varios proyectos
 
@@ -191,11 +271,37 @@ Luego reinicia MCP / el cliente y prueba:
 1. `sync_project_docs` con `target_dir` = docs del producto.
 2. `search_knowledge_base` con una query.
 
-Para debug con log en archivo, cambia `command` a `scripts/run-with-log.sh`.
+### Wrapper `run-with-log.sh` (recomendado para medir uso)
+
+Tras cambiar `mcp.json`, **recarga MCP** (Customize → MCPs → refresh / restart `ops-rag`). Sin recarga, Cursor sigue el proceso viejo.
+
+```json
+{
+  "mcpServers": {
+    "ops-rag": {
+      "command": "/absolute/path/to/ops-agent/mcp-rag/scripts/run-with-log.sh",
+      "args": [],
+      "env": {
+        "NODE_BIN": "/absolute/path/to/node",
+        "OLLAMA_URL": "http://127.0.0.1:11434",
+        "QDRANT_URL": "http://127.0.0.1:6333",
+        "EMBEDDING_MODEL": "nomic-embed-text",
+        "EMBEDDING_DIM": "768",
+        "QDRANT_COLLECTION": "ops_knowledge",
+        "DEFAULT_PROJECT_ID": "ops-agent"
+      }
+    }
+  }
+}
+```
+
+`NODE_BIN` es opcional si `node` está en el PATH del proceso MCP. Si hoy usas el binario de nvm, pon esa misma ruta en `NODE_BIN`.
+
+Ejemplo LOCAL (no lo versionamos): `command` = `/home/pablo/Documents/Heriberto/ops-agent/mcp-rag/scripts/run-with-log.sh` y `NODE_BIN` = `/home/pablo/.nvm/versions/node/v24.19.0/bin/node`.
 
 ### Nota LOCAL (opcional)
 
-Si trabajas en un clon concreto, sustituye el placeholder por la ruta real a `mcp-rag/dist/index.js` en tu disco. No hace falta versionar esa ruta en el repo.
+Si trabajas en un clon concreto, sustituye el placeholder por la ruta real a `mcp-rag/dist/index.js` (o al wrapper) en tu disco. No hace falta versionar esa ruta en el repo.
 
 ## Variables de entorno
 

@@ -101,6 +101,7 @@ Compatible en principio con otros clientes agentic que hablen **MCP stdio** (Cur
 2. Config **global** del usuario (no va en el repo): `~/.cursor/mcp.json` — servidor `ops-rag` apuntando a `mcp-rag/dist/index.js` (snippet en [`mcp-rag/README.md`](mcp-rag/README.md)).
 3. Reinicia MCP / Cursor y verifica en **Customize → MCPs** (o Settings → MCP): `ops-rag` en verde con **2 tools enabled**.
 4. Regla del repo: [`.cursor/rules/prefer-indexed-knowledge.mdc`](.cursor/rules/prefer-indexed-knowledge.mdc) — busca con `search_knowledge_base` antes de leer docs a mansalva. Pasa `project_id` según el producto (`ops-agent`, `autobot`, `whats-api`, `omnicast`, …).
+5. **Para todos los proyectos:** añade (o pega) la User Rule global en **Customize → Rules → User Rules** (texto en `~/.cursor/rules/prefer-ops-rag.PASTE-INTO-USER-RULES.txt`; también hay `~/.cursor/rules/prefer-ops-rag.mdc`). *Append* — no borres tus reglas de comunicación existentes.
 
 ![ops-rag en Cursor: estado verde, 2 tools enabled](docs/ops/images/cursor-mcp-ops-rag.png)
 

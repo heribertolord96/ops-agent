@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -7,6 +8,7 @@ import { OllamaClient } from "./clients/ollama.js";
 import { QdrantClient } from "./clients/qdrant.js";
 import { searchKnowledgeBase } from "./tools/search.js";
 import { syncProjectDocs } from "./tools/sync.js";
+import { recordUsage } from "./usageLog.js";
 
 const config = loadConfig();
 const ollama = new OllamaClient(config);
@@ -35,11 +37,40 @@ server.tool(
       .describe("Max hits (default 5)"),
   },
   async (args) => {
-    const result = await searchKnowledgeBase(args, { config, ollama, qdrant });
-    return {
-      content: [{ type: "text" as const, text: result.text }],
-      isError: result.isError,
-    };
+    const started = Date.now();
+    const projectId = args.project_id?.trim() || config.defaultProjectId;
+    try {
+      const result = await searchKnowledgeBase(args, { config, ollama, qdrant });
+      await recordUsage({
+        tool: "search_knowledge_base",
+        projectId: result.projectId ?? projectId,
+        query: args.query,
+        hitCount: result.hitCount ?? 0,
+        chars: result.text.length,
+        isError: Boolean(result.isError),
+        ms: Date.now() - started,
+      });
+      return {
+        content: [{ type: "text" as const, text: result.text }],
+        isError: result.isError,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const text = `search_knowledge_base failed: ${msg}`;
+      await recordUsage({
+        tool: "search_knowledge_base",
+        projectId,
+        query: args.query,
+        hitCount: 0,
+        chars: text.length,
+        isError: true,
+        ms: Date.now() - started,
+      });
+      return {
+        content: [{ type: "text" as const, text }],
+        isError: true,
+      };
+    }
   },
 );
 
@@ -62,11 +93,43 @@ server.tool(
       .describe("Include .mdx files (default true)"),
   },
   async (args) => {
-    const result = await syncProjectDocs(args, { config, ollama, qdrant });
-    return {
-      content: [{ type: "text" as const, text: result.text }],
-      isError: result.isError,
-    };
+    const started = Date.now();
+    const projectId = args.project_id?.trim() || config.defaultProjectId;
+    const targetDir = path.resolve(args.target_dir);
+    try {
+      const result = await syncProjectDocs(args, { config, ollama, qdrant });
+      await recordUsage({
+        tool: "sync_project_docs",
+        projectId: result.projectId ?? projectId,
+        targetDir,
+        files: result.files ?? 0,
+        chunks: result.chunks ?? 0,
+        chars: result.text.length,
+        isError: Boolean(result.isError),
+        ms: Date.now() - started,
+      });
+      return {
+        content: [{ type: "text" as const, text: result.text }],
+        isError: result.isError,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const text = `sync_project_docs failed: ${msg}`;
+      await recordUsage({
+        tool: "sync_project_docs",
+        projectId,
+        targetDir,
+        files: 0,
+        chunks: 0,
+        chars: text.length,
+        isError: true,
+        ms: Date.now() - started,
+      });
+      return {
+        content: [{ type: "text" as const, text }],
+        isError: true,
+      };
+    }
   },
 );
 

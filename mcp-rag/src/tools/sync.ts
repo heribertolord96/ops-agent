@@ -6,6 +6,7 @@ import type { QdrantClient } from "../clients/qdrant.js";
 import { chunkMarkdown } from "../chunking.js";
 import { deterministicPointId, sha256 } from "../hash.js";
 import { assertServicesReachable, resolveVectorSize } from "../health.js";
+import type { McpToolResult } from "../usageLog.js";
 
 export type SyncArgs = {
   target_dir: string;
@@ -30,13 +31,21 @@ export async function syncProjectDocs(
     ollama: OllamaClient;
     qdrant: QdrantClient;
   },
-): Promise<{ text: string; isError?: boolean }> {
+): Promise<McpToolResult> {
+  const projectId = args.project_id?.trim() || deps.config.defaultProjectId;
+  const fail = (text: string, files = 0, chunks = 0): McpToolResult => ({
+    text,
+    isError: true,
+    projectId,
+    files,
+    chunks,
+  });
+
   const unreachable = await assertServicesReachable(deps.ollama, deps.qdrant);
   if (unreachable) {
-    return { text: unreachable, isError: true };
+    return fail(unreachable);
   }
 
-  const projectId = args.project_id?.trim() || deps.config.defaultProjectId;
   const root = path.resolve(args.target_dir);
   const force = Boolean(args.force);
   const includeMdx = args.include_mdx !== false;
@@ -44,10 +53,10 @@ export async function syncProjectDocs(
   try {
     const rootStat = await stat(root);
     if (!rootStat.isDirectory()) {
-      return { text: `target_dir is not a directory: ${root}`, isError: true };
+      return fail(`target_dir is not a directory: ${root}`);
     }
   } catch {
-    return { text: `target_dir not found: ${root}`, isError: true };
+    return fail(`target_dir not found: ${root}`);
   }
 
   const stats: SyncStats = {
@@ -130,16 +139,18 @@ export async function syncProjectDocs(
         2,
       ),
       isError: stats.errors.length > 0 && stats.indexed_files === 0,
+      projectId,
+      files: stats.indexed_files,
+      chunks: stats.indexed_chunks,
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (/fetch failed|ECONNREFUSED|ENOTFOUND|timeout|AbortError/i.test(msg)) {
-      return {
-        text: "⚠️ Qdrant/Ollama MCP service is unreachable. Falling back to local file reading.",
-        isError: true,
-      };
+      return fail(
+        "⚠️ Qdrant/Ollama MCP service is unreachable. Falling back to local file reading.",
+      );
     }
-    return { text: `sync_project_docs failed: ${msg}`, isError: true };
+    return fail(`sync_project_docs failed: ${msg}`);
   }
 }
 

@@ -1,5 +1,8 @@
 node_modules/
 dist/
 .env
+# Runtime logs: mcp.log, mcp-usage.jsonl, snapshots/*.json (never commit)
 logs/
 *.log
+# Playwright captures (binary noise)
+dashboard/shots/

@@ -16,7 +16,9 @@
     "sync-docs": "tsx scripts/sync-docs.ts",
     "search": "tsx scripts/search.ts",
     "logs": "mkdir -p logs && touch logs/mcp.log && tail -n 80 -f logs/mcp.log",
-    "start:logged": "bash scripts/run-with-log.sh"
+    "start:logged": "bash scripts/run-with-log.sh",
+    "snapshot-usage": "tsx scripts/snapshot-usage.ts",
+    "dashboard": "tsx scripts/serve-dashboard.ts"
   },
   "engines": {
     "node": ">=20"

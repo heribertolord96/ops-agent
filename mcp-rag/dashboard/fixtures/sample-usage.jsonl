@@ -1,0 +1,22 @@
+{"ts":"2026-08-23T14:02:11.000Z","tool":"sync_project_docs","project_id":"ops-agent","target_dir":"/tmp/demo/ops-agent","files":18,"chunks":64,"chars":890,"is_error":false,"ms":3810}
+{"ts":"2026-08-23T14:05:40.000Z","tool":"search_knowledge_base","project_id":"ops-agent","query":"ops triage weekly jobs","hit_count":5,"chars":1840,"is_error":false,"ms":312}
+{"ts":"2026-08-23T15:11:02.000Z","tool":"search_knowledge_base","project_id":"ops-agent","query":"mcp-rag pattern retrieval flow","hit_count":4,"chars":1210,"is_error":false,"ms":288}
+{"ts":"2026-08-23T16:40:18.000Z","tool":"search_knowledge_base","project_id":"autobot","query":"how ollama embeddings are configured","hit_count":3,"chars":980,"is_error":false,"ms":401}
+{"ts":"2026-08-23T18:22:55.000Z","tool":"search_knowledge_base","project_id":"whats-api","query":"messaging api rate limits","hit_count":5,"chars":2104,"is_error":false,"ms":355}
+{"ts":"2026-08-24T09:08:01.000Z","tool":"search_knowledge_base","project_id":"ops-agent","query":"what must the agent not do","hit_count":3,"chars":740,"is_error":false,"ms":276}
+{"ts":"2026-08-24T09:09:44.000Z","tool":"search_knowledge_base","project_id":"omnicast","query":"privacy policy draft sections","hit_count":4,"chars":1320,"is_error":false,"ms":298}
+{"ts":"2026-08-24T10:15:12.000Z","tool":"sync_project_docs","project_id":"omnicast","target_dir":"/tmp/demo/omnicast","files":9,"chunks":31,"chars":540,"is_error":false,"ms":2540}
+{"ts":"2026-08-24T11:02:33.000Z","tool":"search_knowledge_base","project_id":"whats-api","query":"webhook signature verification","hit_count":2,"chars":640,"is_error":false,"ms":265}
+{"ts":"2026-08-24T12:44:09.000Z","tool":"search_knowledge_base","project_id":"ops-agent","query":"inbox job execute workspace yaml","hit_count":5,"chars":1670,"is_error":false,"ms":330}
+{"ts":"2026-08-24T13:01:20.000Z","tool":"search_knowledge_base","project_id":"autobot","query":"unreachable ollama fallback","hit_count":0,"chars":180,"is_error":true,"ms":82}
+{"ts":"2026-08-24T15:30:47.000Z","tool":"search_knowledge_base","project_id":"ops-agent","query":"decision log durable record","hit_count":4,"chars":1110,"is_error":false,"ms":301}
+{"ts":"2026-08-24T17:18:03.000Z","tool":"search_knowledge_base","project_id":"whats-api","query":"dense knowledge api messaging overview","hit_count":5,"chars":2400,"is_error":false,"ms":370}
+{"ts":"2026-08-24T19:55:28.000Z","tool":"search_knowledge_base","project_id":"omnicast","query":"terms disclaimer copyright notice","hit_count":3,"chars":990,"is_error":false,"ms":284}
+{"ts":"2026-08-25T08:12:00.000Z","tool":"search_knowledge_base","project_id":"ops-agent","query":"weekly scan ops triage","hit_count":5,"chars":1502,"is_error":false,"ms":319}
+{"ts":"2026-08-25T08:14:41.000Z","tool":"search_knowledge_base","project_id":"autobot","query":"product docs bots and ollama","hit_count":3,"chars":860,"is_error":false,"ms":290}
+{"ts":"2026-08-25T09:03:15.000Z","tool":"sync_project_docs","project_id":"ops-agent","target_dir":"/tmp/demo/ops-agent","files":20,"chunks":70,"chars":910,"is_error":false,"ms":4022}
+{"ts":"2026-08-25T09:21:08.000Z","tool":"search_knowledge_base","project_id":"ops-agent","query":"prefer indexed knowledge search first","hit_count":5,"chars":1420,"is_error":false,"ms":305}
+{"ts":"2026-08-25T10:40:52.000Z","tool":"search_knowledge_base","project_id":"whats-api","query":"qdrant collection missing fallback","hit_count":1,"chars":220,"is_error":true,"ms":64}
+{"ts":"2026-08-25T11:05:17.000Z","tool":"search_knowledge_base","project_id":"omnicast","query":"play store legal copy draft","hit_count":4,"chars":1188,"is_error":false,"ms":341}
+{"ts":"2026-08-25T12:22:39.000Z","tool":"search_knowledge_base","project_id":"ops-agent","query":"snapshot usage dashboard metrics","hit_count":5,"chars":1760,"is_error":false,"ms":344}
+{"ts":"2026-08-25T13:00:04.000Z","tool":"search_knowledge_base","project_id":"autobot","query":"sync project docs force reembed","hit_count":2,"chars":510,"is_error":false,"ms":277}

@@ -2,12 +2,14 @@
 # Wrap MCP stdio process: keep stdout clean for Cursor, tee stderr to a log.
 # Usage: ./scripts/run-with-log.sh
 # Or point Cursor mcp.json command at this script.
+# Optional env: NODE_BIN=/path/to/node (Cursor often lacks nvm on PATH).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_DIR="${ROOT}/logs"
 LOG_FILE="${LOG_DIR}/mcp.log"
 ENTRY="${ROOT}/dist/index.js"
+NODE_BIN="${NODE_BIN:-node}"
 
 mkdir -p "${LOG_DIR}"
 
@@ -16,5 +18,6 @@ if [[ ! -f "${ENTRY}" ]]; then
   exit 1
 fi
 
-# stdout stays on fd 1 for MCP JSON-RPC; stderr is duplicated to the log.
-exec node "${ENTRY}" 2> >(tee -a "${LOG_FILE}" >&2)
+# stdout stays on fd 1 for MCP JSON-RPC; stderr is duplicated to mcp.log.
+# The server also appends one JSON line per tool call to logs/mcp-usage.jsonl.
+exec "${NODE_BIN}" "${ENTRY}" 2> >(tee -a "${LOG_FILE}" >&2)

@@ -3,6 +3,7 @@ import { UNREACHABLE_MSG } from "../config.js";
 import type { OllamaClient } from "../clients/ollama.js";
 import type { QdrantClient } from "../clients/qdrant.js";
 import { assertServicesReachable } from "../health.js";
+import type { McpToolResult } from "../usageLog.js";
 
 export type SearchArgs = {
   query: string;
@@ -17,17 +18,24 @@ export async function searchKnowledgeBase(
     ollama: OllamaClient;
     qdrant: QdrantClient;
   },
-): Promise<{ text: string; isError?: boolean }> {
+): Promise<McpToolResult> {
+  const projectId = args.project_id?.trim() || deps.config.defaultProjectId;
+  const fail = (text: string): McpToolResult => ({
+    text,
+    isError: true,
+    projectId,
+    hitCount: 0,
+  });
+
   const unreachable = await assertServicesReachable(deps.ollama, deps.qdrant);
   if (unreachable) {
-    return { text: unreachable, isError: true };
+    return fail(unreachable);
   }
 
-  const projectId = args.project_id?.trim() || deps.config.defaultProjectId;
   const limit = Math.min(Math.max(args.limit ?? 5, 1), 20);
   const query = args.query.trim();
   if (!query) {
-    return { text: "query is required", isError: true };
+    return fail("query is required");
   }
 
   try {
@@ -46,6 +54,8 @@ export async function searchKnowledgeBase(
           null,
           2,
         ),
+        projectId,
+        hitCount: 0,
       };
     }
 
@@ -71,12 +81,14 @@ export async function searchKnowledgeBase(
         null,
         2,
       ),
+      projectId,
+      hitCount: formatted.length,
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (/fetch failed|ECONNREFUSED|ENOTFOUND|timeout|AbortError/i.test(msg)) {
-      return { text: UNREACHABLE_MSG, isError: true };
+      return fail(UNREACHABLE_MSG);
     }
-    return { text: `search_knowledge_base failed: ${msg}`, isError: true };
+    return fail(`search_knowledge_base failed: ${msg}`);
   }
 }
